@@ -1,0 +1,452 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <unordered_map>
+#include <sstream>
+#include <algorithm>
+
+using namespace std;
+
+// Estructura para almacenar los datos de un viaje
+struct viaje {
+	int dia;
+	int  kmRecorridos;
+	string origen;
+	string destino;
+	int litrosGasolina;
+	string horaInicio;
+	string horaFin;
+	int montoCobrado;
+	int costos;
+	int montoPromedio;
+};
+
+
+// Función para calcular el monto de un viaje
+int calcularMonto(const viaje& v) {
+	int tarifaBase = 1000;
+	int tarifaFinal = tarifaBase + v.kmRecorridos * 500;
+	
+	if (v.horaInicio >= "22:00" || v.horaInicio < "06:00") {
+		tarifaBase *= 1.25;
+	}
+	return tarifaFinal  ;
+}
+
+// Funcion para calcular los litros de gasolina consumidos
+int calcularLitros(int kmRecorridos, int rendimiento ){
+	double litros = kmRecorridos / (double)rendimiento;
+	
+	return litros;
+}
+//Funcion para calcular los costos de un viaje
+int calcularCostos(viaje v ){
+	int rendimiento = 5;
+	int kmRecorridos = v.kmRecorridos;
+	int litros = kmRecorridos / (int)rendimiento;
+	int costoGasolina = litros * 850;
+	return costoGasolina;
+}
+
+	
+	// Clase para manejar la colección de viajes
+	class Viajes {
+	private:
+		
+		vector<viaje> viajes;
+		
+	public:
+		
+		// Constructor sin parametros
+		Viajes() {}
+		
+		// Constructor con parametros
+		Viajes(const vector<viaje> &viajes): viajes(viajes) {}
+		
+		const vector<viaje> &getViajes() const {
+			return viajes;
+		}
+		//Metodo destructor
+		~Viajes() {}
+		
+		// Getter para el vector de viajes
+		const vector<viaje>& getViajes() const {
+			return viajes;
+		}
+		
+		// Setter para el vector de viajes
+		void setViajes(const vector<viaje>& nuevosViajes) {
+			viajes = nuevosViajes;
+		}
+		
+		// Función para agregar un nuevo viaje
+		void agregarViaje(int dia, int kmRecorridos, string origen, string destino, int litrosGasolina, string horaInicio, string horaFin) {
+			viaje v;
+			v.dia = dia;
+			v.kmRecorridos = kmRecorridos;
+			v.origen = origen;
+			v.destino = destino;
+			v.litrosGasolina = litrosGasolina;
+			v.horaInicio = horaInicio;
+			v.horaFin = horaFin;
+			v.montoCobrado = calcularMonto(v);
+			v.costos = calcularCostos(v); 
+			viajes.push_back(v);
+		}
+		
+		
+		// Función para mostrar los detalles de los viajes realizados en un día específico
+		string mostrarViajesPorDia(int dia) {
+			stringstream ss;
+			for (int i = 0; i < viajes.size(); i++) {
+				if (viajes[i].dia == dia) {
+					ss << "Viaje #" + to_string(i+1) + "\n";
+					ss << "Kilómetros recorridos: " + to_string(viajes[i].kmRecorridos) + "\n";
+					ss << "Lugar de origen: " + viajes[i].origen + "\n";
+					ss <<  "Lugar de destino: " + viajes[i].destino + "\n";
+					ss << "Litros de gasolina consumidos: " + to_string(viajes[i].litrosGasolina) + "\n";
+					ss << "Hora de inicio: " + viajes[i].horaInicio + "\n";
+					ss << "Hora de fin: " + viajes[i].horaFin + "\n";
+					ss << "Monto cobrado: " + to_string(viajes[i].montoCobrado) + "\n";
+					ss << "Costos: " + to_string(viajes[i].costos) + "\n\n";
+				}
+			}
+			string detalle = ss.str();
+			if (detalle == "") {
+				detalle = "No se encontraron viajes para el día ingresado." ;
+			} 
+			return detalle;
+		}
+		
+		// Función para mostrar los promedios de los viajes registrados hasta el momento
+		string mostrarPromedios() {
+			int kmPromedio = 0;
+			int costoPromedio = 0;
+			int montoPromedio = 0;
+			int litrosPromedio = 0;
+			// Calcula la suma de cada uno
+			for (int i = 0; i < viajes.size(); i++) {
+				kmPromedio += viajes[i].kmRecorridos;
+				costoPromedio += viajes[i].costos;
+				montoPromedio += viajes[i].montoCobrado;
+				litrosPromedio += viajes[i].litrosGasolina;
+			}
+			// calcula el promedio
+			kmPromedio /= viajes.size();
+			costoPromedio /= viajes.size();
+			montoPromedio /= viajes.size();
+			litrosPromedio /= viajes.size();
+			// Crea el string con los promedios
+			
+			string promedios = "Promedio de los viajes realizados:\n";
+			promedios += "Kilómetros recorridos: " + to_string(kmPromedio) + "\n";
+			promedios += "Costos: " + to_string(costoPromedio) + "\n";
+			promedios += "Monto cobrado: " + to_string(montoPromedio) + "\n";
+			promedios += "Litros de gasolina consumidos: " + to_string(litrosPromedio) + "\n";
+			
+			return promedios;
+		}
+		// Función para calcular los kilómetros recorridos en un día específico
+		int calcularKmPorDia(int dia){
+			int kmRecorridos =0;
+			for (int i = 0 ; i < viajes.size(); i++){
+				if (viajes[i].dia == dia){
+					kmRecorridos += viajes[i].kmRecorridos;
+				}
+			}
+			return kmRecorridos;
+		}
+			
+			// Función para mostrar la cantidad de viajes realizados para cada día del mes
+			string mostrarCantidadViajesPorDia() {
+				stringstream ss;
+				int cantidadViajes[31] = {0};
+				for (int i = 0; i < viajes.size(); i++) {
+					cantidadViajes[viajes[i].dia-1]++;
+				}
+				int maxViajes = 0;
+				int minViajes = 1000000;
+				int diaMaxViajes = 0;
+				int diaMinViajes = 0;
+				for (int i = 0; i < 31; i++) {
+					ss << "Día " << i+1 << ": " << cantidadViajes[i] << " viajes" << endl;
+					if (cantidadViajes[i] > maxViajes) {
+						maxViajes = cantidadViajes[i];
+						diaMaxViajes = i+1;
+					}
+					if (cantidadViajes[i] < minViajes && cantidadViajes[i] > 0) {
+						minViajes = cantidadViajes[i];
+						diaMinViajes = i+1;
+					}
+				}
+				ss << "Día con mayor cantidad de viajes: " << diaMaxViajes << " con " << maxViajes << " viajes" << endl;
+				ss << "Día con menor cantidad de viajes: " << diaMinViajes << " con " << minViajes << " viajes" << endl;
+				return ss.str();
+			}
+			
+			
+			string viajesPorDestino(string destino){
+				stringstream ss;
+				int cantidadViajes = 0;
+				for (int i = 0; i < viajes.size(); i++) {
+					if (viajes[i].destino == destino) {
+						cantidadViajes++;
+					}
+				}
+				ss << "Cantidad de viajes a " << destino << ": " << cantidadViajes << endl;
+				return ss.str();
+			}
+				
+				struct LugarConMasViajes {
+					string lugar;
+					int cantidadViajes;
+				};
+				
+				// Lugar con mas viajes realizados
+				void mostrarLugaresConMasViajes(){
+					vector<LugarConMasViajes> lugares;
+					unordered_map<string, int> lugaresOrigen;
+					unordered_map<string, int> lugaresDestino;
+					for(const auto& viaje : viajes){
+						lugaresOrigen[viaje.origen]++;
+						lugaresDestino[viaje.destino]++;
+					}
+					for(const auto& lugarCantidad : lugaresOrigen){
+						const string& lugar = lugarCantidad.first;
+						const int cantidad = lugarCantidad.second;
+						
+						
+						lugares.push_back({lugar, cantidad});
+					}
+					for(const auto& lugarCantidad : lugaresDestino){
+						const string& lugar = lugarCantidad.first;
+						const int cantidad = lugarCantidad.second;
+						lugares.push_back({lugar, cantidad});
+					}
+					
+					
+					sort(lugares.begin(), lugares.end(),[](const LugarConMasViajes& a, const LugarConMasViajes& b){
+						return a.cantidadViajes > b.cantidadViajes;
+					});
+					
+					stringstream ss;
+					
+					ss << "Lugar de origen con mas viajes realizados: " << lugares[0].lugar << " con " << lugares[0].cantidadViajes << " viajes" << endl;
+					ss << "Lugar de destino con mas viajes realizados: " << lugares[1].lugar << " con " << lugares[1].cantidadViajes << " viajes" << std::endl;
+					
+					cout << ss.str();
+				}
+					
+					
+					
+					// metodo para calcular la ganancia diaria
+
+					int calcularGananciaDiaria(int dia ){
+
+						int ingresos = 0;
+						int gastos = 0;
+						for (int i = 0; i < viajes.size();i++){
+							if (viajes[i].dia == dia){
+								ingresos += viajes[i].montoCobrado;
+								gastos += viajes[i].costos;
+							}
+						}
+						return ingresos - gastos;
+					}
+						// Función para mostrar la ganancia diaria de un día específico
+						void mostrarGananciaDiaria(int dia){
+							stringstream ss;
+							int ganancia = calcularGananciaDiaria(dia);
+							ss<< "La ganancia del día " << dia << " es de: " << ganancia << endl;
+							cout << ss.str();
+						}
+							
+							void ordenarViajesPorFecha(const vector<viaje>& viajes) const {
+								sort(viajes.begin(), viajes.end(),[](const viaje& a, const viaje& b){
+									return a.dia < b.dia;
+								});
+							}
+							void ordenarViajesPorMonto(const vector<viaje>& viajes) const {
+								sort(viajes.begin(), viajes.end(),[](const viaje& a, const viaje& b){
+									return a.montoCobrado > b.montoCobrado;
+								});
+								}
+							
+
+
+							void mostrarViajes() const {
+								stringstream ss;
+								for (int i = 0; i < viajes.size(); i++){
+								ss<< "Viaje " << i+1 << ": " << endl;
+								ss<< "Fecha: " << viajes[i].dia << endl;
+								ss<< "Origen: " << viajes[i].origen << endl;
+								ss<< "Destino: " << viajes[i].destino << endl;
+								ss<< "Monto cobrado: " << viajes[i].montoCobrado << endl;
+
+								}
+								cout << ss.str();
+							}
+	};
+	
+	int main() {
+		Viajes v;
+		int opcion;
+		
+		
+		do {
+			cout << "Menú de opciones:" << endl;
+			cout << "1. Agregar un nuevo viaje" << endl;
+			cout << "2. Mostrar los detalles de los viajes realizados en un día específico" << endl;
+			cout << "3. Mostrar los promedios de los viajes registrados hasta el momento" << endl;
+			cout << "4. Mostrar la cantidad de viajes realizados para cada día del mes" << endl;
+			cout << "5. Mostrar la cantidad de viajes realizados con un destino específico" << endl;
+			cout << "6. Mostrar los lugares con más viajes realizados" << endl;
+			cout << "7 Mostrar la ganancia diaria de un día específico" << endl;
+			cout << "8. Ordenar viajes " << endl;
+			cout << "9.Salir" << endl;
+			cout << "Ingrese una opción: ";
+			cin >> opcion;
+			
+			int dia;
+			string destino;
+			int kmRecorridos;
+			string origen;
+			int litrosGasolina;
+			string horaInicio;
+			string horaFin;
+			int rendiminento = 5;
+			string mostrar;
+			system("cls");
+			
+			switch (opcion) {
+			case 1:{ 
+				
+				cout << "Ingrese el dia del viaje: ";
+				cin >> dia;
+				cout << "Ingrese los kilometros recorridos: ";
+				cin >> kmRecorridos;
+				
+				
+				cout << "Ingrese el lugar de origen: ";
+				cin >> origen;
+				cout << "Ingrese el lugar de destino: ";
+				cin >> destino;
+				litrosGasolina = calcularLitros(kmRecorridos, rendiminento);
+				
+				
+				
+				cout << "Ingrese la hora de inicio: ";
+				cin >> horaInicio;
+				cout << "Ingrese la hora de fin: ";
+				cin >> horaFin;
+				v.agregarViaje(dia, kmRecorridos, origen, destino, litrosGasolina, horaInicio, horaFin);
+				
+				break;
+				system("pause");
+				system("cls");
+			}
+			case 2:{ 
+					int kmRecorridos;
+					int litros;
+					int rendimiento = 5;
+					
+					cout << "Ingrese el dia del que desea conocer los detalles de los viajes: ";
+					cin >> dia;
+					cout<<v.mostrarViajesPorDia(dia);
+					kmRecorridos = v.calcularKmPorDia(dia);
+					litros = calcularLitros(kmRecorridos,rendimiento);
+					cout<<"Los litros de gasolina utilizados en el dia "<<dia<<" son: "<<litros<<endl;
+					system("pause");
+					system("cls");
+					break;
+					
+				}
+					
+			case 3:{ 
+						string promedios = v.mostrarPromedios();
+						cout << promedios << endl;
+						v.mostrarPromedios();
+						
+						break;
+					}
+			case 4:
+							mostrar = v.mostrarCantidadViajesPorDia();
+							cout << mostrar << endl;
+							break;
+			case 5:
+				cout << "Ingrese el destino: ";
+				cin >> destino;
+				v.viajesPorDestino(destino);
+				cout<< v.viajesPorDestino(destino);
+				break;
+			case 6:
+				v.mostrarLugaresConMasViajes();
+				break;
+			case 7:{ 
+				int dia;
+				cout << "Ingrese el dia del que desea conocer la ganancia: ";
+				cin >> dia;
+
+				v.mostrarGananciaDiaria (dia);
+				system("pause");
+				system("cls");
+				break;
+			}
+				
+				
+			case 8:{ 
+					do {
+						cout << "Menú de opciones:" << endl;
+						cout << "1. Ordenar por fecha" << endl;
+						cout << "2. Ordenar por monto" << endl;
+						cout << "3. Salir" << endl;
+						cout << "Ingrese una opción: ";
+						cin >> opcion;
+						
+						switch (opcion) {
+							
+						case 1:{ 
+							v.ordenarViajesPorFecha(v.getViajes());
+							cout << "Los viajes ordenalos por fecha son: " << endl;
+							v.mostrarViajes();
+							
+							
+							break;
+						}
+							
+	
+							
+						case 2:{
+								v.ordenarViajesPorMonto(v.getViajes());
+								v.mostrarViajes();
+								cout << "Los viajes ordenalos por monto son: " << endl;
+								
+								break;
+								
+							}
+								
+						default:{ 
+									cout << "Opción inválida. Intente de nuevo." << endl;
+									break;
+								}
+						}
+						
+					} while (opcion != 2);
+					return 0;
+				}
+					
+			case 9:{ 
+						break;
+					}
+						
+			default:{ 
+							cout << "Opción inválida. Intente de nuevo." << endl;
+							break;
+						}
+			}
+		} while (opcion != 9);
+		return 0;
+	}
+	
+	
